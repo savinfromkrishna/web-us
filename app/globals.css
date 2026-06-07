@@ -2,7 +2,14 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1a1a1a;
+  --brand: #1f7a3d;
+  --brand-dark: #155c2c;
+  --accent: #f59e0b;
+  --muted: #6b7280;
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --surface: #f7f8fa;
 }
 
 @theme inline {
@@ -12,15 +19,324 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", Arial,
+    sans-serif;
+  line-height: 1.6;
+  margin: 0;
+}
+
+a {
+  color: var(--brand-dark);
+}
+
+/* ---------- Site chrome ---------- */
+.site-header {
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.site-header .inner,
+.site-footer .inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand-logo {
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  color: var(--brand-dark);
+  text-decoration: none;
+}
+
+.brand-logo span {
+  color: var(--accent);
+}
+
+.nav-links {
+  display: flex;
+  gap: 18px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.nav-links a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.nav-links a:hover {
+  color: var(--brand-dark);
+}
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  margin-top: 64px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.site-footer .inner {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.disclaimer-bar {
+  background: #fff7ed;
+  border-bottom: 1px solid #fed7aa;
+  color: #92400e;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 8px 20px;
+}
+
+/* ---------- Hero / homepage ---------- */
+.home-hero {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 20px 24px;
+  text-align: center;
+}
+
+.home-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin: 0 0 16px;
+  font-weight: 800;
+}
+
+.home-hero p {
+  font-size: 1.15rem;
+  color: var(--muted);
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.section-title {
+  max-width: 1100px;
+  margin: 32px auto 0;
+  padding: 0 20px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* ---------- Review grid ---------- */
+.review-grid {
+  max-width: 1100px;
+  margin: 24px auto 0;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+.review-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.review-card:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+}
+
+.review-card .thumb {
+  background: var(--surface);
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.review-card .thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.review-card .body {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.review-card .cat {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.review-card h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.review-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  flex: 1;
+}
+
+.review-card .read {
+  font-weight: 600;
+  color: var(--brand-dark);
+  font-size: 0.9rem;
+}
+
+/* ---------- Article ---------- */
+.article-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px 16px;
+}
+
+.breadcrumb {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--brand-dark);
+}
+
+.article-hero-img {
+  text-align: center;
+  margin: 0 0 28px;
+}
+
+.article-hero-img img {
+  max-width: 320px;
+  width: 100%;
+  height: auto;
+}
+
+.article {
+  font-size: 1.05rem;
+  color: #25282c;
+}
+
+.article h1 {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  margin: 0 0 24px;
+}
+
+.article h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 38px 0 14px;
+  padding-top: 8px;
+  letter-spacing: -0.01em;
+}
+
+.article h3 {
+  font-size: 1.12rem;
+  font-weight: 700;
+  margin: 22px 0 6px;
+}
+
+.article p {
+  margin: 0 0 16px;
+}
+
+.article img {
+  max-width: 280px;
+  height: auto;
+  display: block;
+  margin: 8px auto 24px;
+}
+
+.article em {
+  display: block;
+  margin-top: 28px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-style: normal;
+  line-height: 1.5;
+}
+
+/* ---------- CTA buy button ---------- */
+.buy-button {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  margin: 26px auto;
+  padding: 17px 24px;
+  background: linear-gradient(180deg, #ffb02e 0%, var(--accent) 100%);
+  color: #1a1a1a !important;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.buy-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(245, 158, 11, 0.5);
+}
+
+.buy-button:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .buy-button {
+    font-size: 1rem;
+    padding: 15px 18px;
+  }
 }
