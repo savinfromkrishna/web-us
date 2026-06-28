@@ -19,7 +19,7 @@ export type Product = {
 export const products: Product[] = [
   {
     "slug": "mitolyn-weight-loss-supplement",
-    "category": "Weight & Energy",
+    "category": "Weight Loss",
     "tagline": "Mitochondria-focused support for metabolism, energy, and healthy weight management.",
     "product_name": "Mitolyn",
     "affiliate_link": "https://39390fnq-9hr1w8auptd0m1z8y.hop.clickbank.net/?&traffic_source=website",
@@ -91,7 +91,7 @@ export const products: Product[] = [
   },
   {
     "slug": "prodentim-oral-health-supplement",
-    "category": "Oral Health",
+    "category": "Dental Health",
     "tagline": "An oral probiotic chewable that repopulates your mouth with friendly bacteria.",
     "product_name": "ProDentim",
     "affiliate_link": "https://0a98begum1on1vckxni-ylxdc3.hop.clickbank.net/?&traffic_source=website",
@@ -167,7 +167,7 @@ export const products: Product[] = [
   },
   {
     "slug": "sleeplean-sleep-weight-loss-supplement",
-    "category": "Sleep & Weight",
+    "category": "Weight Loss",
     "tagline": "Deep-sleep support paired with nighttime weight management in one nightly capsule.",
     "product_name": "SleepLean",
     "affiliate_link": "https://9fe84fnru1my4rbqz7qhx3oecj.hop.clickbank.net/?&traffic_source=website",
@@ -319,7 +319,7 @@ export const products: Product[] = [
   },
   {
     "slug": "provadent-oral-health-supplement",
-    "category": "Oral Health",
+    "category": "Dental Health",
     "tagline": "A daily oral probiotic for fresher breath and a balanced oral microbiome.",
     "product_name": "ProvaDent",
     "affiliate_link": "https://f8d0eejkzdcu5kaeuf6wk8pd2g.hop.clickbank.net/?&traffic_source=website",
@@ -395,7 +395,7 @@ export const products: Product[] = [
   },
   {
     "slug": "dentolyn-oral-health-supplement",
-    "category": "Oral Health",
+    "category": "Dental Health",
     "tagline": "Nutrient-driven support for stronger gums, cleaner teeth, and fresh breath.",
     "product_name": "Dentolyn",
     "affiliate_link": "https://abcc6nqix6iueubzii0cww2p6p.hop.clickbank.net/?&traffic_source=website",
@@ -465,7 +465,7 @@ export const products: Product[] = [
   },
   {
     "slug": "dentalprime-oral-health-supplement",
-    "category": "Oral Health",
+    "category": "Dental Health",
     "tagline": "Enamel-friendly minerals and biome support in a simple once-daily tablet.",
     "product_name": "DentalPrime",
     "affiliate_link": "https://d03ebngsx2irdlc0k7u7u0u3c0.hop.clickbank.net/?&traffic_source=website",
@@ -541,7 +541,7 @@ export const products: Product[] = [
   },
   {
     "slug": "pineal-xt-wellness-supplement",
-    "category": "Wellness",
+    "category": "Pineal Gland",
     "tagline": "Plant-based, stimulant-free support for pineal gland function and vitality.",
     "product_name": "Pineal XT",
     "affiliate_link": "https://a5563qdql8gz3t9fam7hvs5z24.hop.clickbank.net/",
@@ -615,7 +615,7 @@ export const products: Product[] = [
   },
   {
     "slug": "prostavive-prostate-supplement",
-    "category": "Men's Health",
+    "category": "Prostate",
     "tagline": "A circulation-focused powder for prostate health, urinary comfort, and vitality.",
     "product_name": "ProstaVive",
     "affiliate_link": "https://eed96gnfw7ikfncg3n-9w35z97.hop.clickbank.net/",
@@ -687,7 +687,7 @@ export const products: Product[] = [
   },
   {
     "slug": "joint-genesis-joint-health-supplement",
-    "category": "Joint Health",
+    "category": "Joints",
     "tagline": "Patented Mobilee plus botanicals to support synovial fluid and flexible joints.",
     "product_name": "Joint Genesis",
     "affiliate_link": "https://f2809fqoldir9ud8p7rfs3swc9.hop.clickbank.net/",
@@ -837,7 +837,7 @@ export const products: Product[] = [
   },
   {
     "slug": "zencortex-hearing-health-supplement",
-    "category": "Hearing Health",
+    "category": "Hearing",
     "tagline": "Natural liquid drops formulated to support healthy hearing and mental clarity.",
     "product_name": "ZenCortex",
     "affiliate_link": "https://f12c7heg-5pnemeyifjk4lonb4.hop.clickbank.net/",

@@ -1,5 +1,6 @@
-// Assembles app/lib/raw/*.json review articles into app/lib/products-data.ts,
-// enriching each with slug, category, and tagline used by listing/cards.
+// Assembles app/lib/raw/*.json review articles into app/lib/products.ts,
+// enriching each with slug, category, and tagline; also extracts FAQ Q&A pairs
+// and writes public/llms.txt for AI answer engines.
 const fs = require("fs");
 const path = require("path");
 
@@ -11,6 +12,42 @@ const llmsFile = path.join(publicDir, "llms.txt");
 // Domain for absolute URLs in llms.txt. Keep in sync with app/lib/site.ts.
 const SITE_URL = "https://healthsupplements.best";
 const SITE_NAME = "WellnessPicks";
+
+// Metadata keyed by product_name (must match the article JSON exactly).
+// `slug` is the canonical, frozen product URL (legacy /reviews/* URLs 308-redirect
+// to it in next.config.ts) — do NOT regenerate it from the category.
+// `category` is the BROAD bucket used by the homepage category grid and the
+// /category/<slug> pages; keep it broad (e.g. every weight-related product lives
+// under "Weight Loss"). Category display data lives in app/lib/categories.ts.
+const meta = {
+  Mitolyn: { slug: "mitolyn-weight-loss-supplement", category: "Weight Loss", tagline: "Mitochondria-focused support for metabolism, energy, and healthy weight management." },
+  ProDentim: { slug: "prodentim-oral-health-supplement", category: "Dental Health", tagline: "An oral probiotic chewable that repopulates your mouth with friendly bacteria." },
+  SleepLean: { slug: "sleeplean-sleep-weight-loss-supplement", category: "Weight Loss", tagline: "Deep-sleep support paired with nighttime weight management in one nightly capsule." },
+  "Belly Flush": { slug: "belly-flush-gut-health-supplement", category: "Gut Health", tagline: "Eleven botanicals to ease bloating and support comfortable, regular digestion." },
+  ProvaDent: { slug: "provadent-oral-health-supplement", category: "Dental Health", tagline: "A daily oral probiotic for fresher breath and a balanced oral microbiome." },
+  Dentolyn: { slug: "dentolyn-oral-health-supplement", category: "Dental Health", tagline: "Nutrient-driven support for stronger gums, cleaner teeth, and fresh breath." },
+  DentalPrime: { slug: "dentalprime-oral-health-supplement", category: "Dental Health", tagline: "Enamel-friendly minerals and biome support in a simple once-daily tablet." },
+  "Pineal XT": { slug: "pineal-xt-wellness-supplement", category: "Pineal Gland", tagline: "Plant-based, stimulant-free support for pineal gland function and vitality." },
+  ProstaVive: { slug: "prostavive-prostate-supplement", category: "Prostate", tagline: "A circulation-focused powder for prostate health, urinary comfort, and vitality." },
+  "Joint Genesis": { slug: "joint-genesis-joint-health-supplement", category: "Joints", tagline: "Patented Mobilee plus botanicals to support synovial fluid and flexible joints." },
+  "Sugar Defender": { slug: "sugar-defender-blood-sugar-supplement", category: "Blood Sugar", tagline: "A 24-ingredient liquid formula to support healthy blood sugar and steady energy." },
+  ZenCortex: { slug: "zencortex-hearing-health-supplement", category: "Hearing", tagline: "Natural liquid drops formulated to support healthy hearing and mental clarity." },
+  Biome: { slug: "biome-weight-loss-supplement", category: "Weight Loss", tagline: "Nine lean-bacteria strains and green tea extract for gut-first weight support." },
+  GlucoBerry: { slug: "glucoberry-blood-sugar-supplement", category: "Blood Sugar", tagline: "Maqui berry support for a healthy kidney 'Blood Sugar Drain' and glucose balance." },
+};
+
+const order = [
+  "01-mitolyn", "02-prodentim", "03-sleeplean", "04-belly-flush", "05-provadent",
+  "06-dentolyn", "07-dentalprime", "08-pineal-xt", "09-prostavive", "10-joint-genesis",
+  "11-sugar-defender", "12-zencortex", "13-biome", "14-glucoberry",
+];
+
+const slugify = (s) =>
+  s
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 // Strip HTML tags + collapse whitespace + decode the few entities present.
 function stripTags(html) {
@@ -54,45 +91,6 @@ function extractFaqs(html) {
   return faqs;
 }
 
-// Metadata keyed by product_name (must match the article JSON exactly).
-const meta = {
-  Mitolyn: { slug: "mitolyn", category: "Weight & Energy", tagline: "Mitochondria-focused support for metabolism, energy, and healthy weight management." },
-  ProDentim: { slug: "prodentim", category: "Oral Health", tagline: "An oral probiotic chewable that repopulates your mouth with friendly bacteria." },
-  SleepLean: { slug: "sleeplean", category: "Sleep & Weight", tagline: "Deep-sleep support paired with nighttime weight management in one nightly capsule." },
-  "Belly Flush": { slug: "belly-flush", category: "Gut Health", tagline: "Eleven botanicals to ease bloating and support comfortable, regular digestion." },
-  ProvaDent: { slug: "provadent", category: "Oral Health", tagline: "A daily oral probiotic for fresher breath and a balanced oral microbiome." },
-  Dentolyn: { slug: "dentolyn", category: "Oral Health", tagline: "Nutrient-driven support for stronger gums, cleaner teeth, and fresh breath." },
-  DentalPrime: { slug: "dentalprime", category: "Oral Health", tagline: "Enamel-friendly minerals and biome support in a simple once-daily tablet." },
-  "Pineal XT": { slug: "pineal-xt", category: "Wellness", tagline: "Plant-based, stimulant-free support for pineal gland function and vitality." },
-  ProstaVive: { slug: "prostavive", category: "Men's Health", tagline: "A circulation-focused powder for prostate health, urinary comfort, and vitality." },
-  "Joint Genesis": { slug: "joint-genesis", category: "Joint Health", tagline: "Patented Mobilee plus botanicals to support synovial fluid and flexible joints." },
-  "Sugar Defender": { slug: "sugar-defender", category: "Blood Sugar", tagline: "A 24-ingredient liquid formula to support healthy blood sugar and steady energy." },
-  ZenCortex: { slug: "zencortex", category: "Hearing Health", tagline: "Natural liquid drops formulated to support healthy hearing and mental clarity." },
-  Biome: { slug: "biome", category: "Weight Loss", tagline: "Nine lean-bacteria strains and green tea extract for gut-first weight support." },
-  GlucoBerry: { slug: "glucoberry", category: "Blood Sugar", tagline: "Maqui berry support for a healthy kidney 'Blood Sugar Drain' and glucose balance." },
-};
-
-// SEO URL descriptor appended to each product slug, derived from its category.
-// e.g. Mitolyn (Weight & Energy) -> /mitolyn-weight-loss-supplement
-const categoryUrlDescriptor = {
-  "Weight & Energy": "weight-loss-supplement",
-  "Oral Health": "oral-health-supplement",
-  "Sleep & Weight": "sleep-weight-loss-supplement",
-  "Gut Health": "gut-health-supplement",
-  Wellness: "wellness-supplement",
-  "Men's Health": "prostate-supplement",
-  "Joint Health": "joint-health-supplement",
-  "Blood Sugar": "blood-sugar-supplement",
-  "Hearing Health": "hearing-health-supplement",
-  "Weight Loss": "weight-loss-supplement",
-};
-
-const order = [
-  "01-mitolyn", "02-prodentim", "03-sleeplean", "04-belly-flush", "05-provadent",
-  "06-dentolyn", "07-dentalprime", "08-pineal-xt", "09-prostavive", "10-joint-genesis",
-  "11-sugar-defender", "12-zencortex", "13-biome", "14-glucoberry",
-];
-
 const products = [];
 for (const name of order) {
   const file = path.join(rawDir, `${name}.json`);
@@ -103,12 +101,9 @@ for (const name of order) {
   const article = JSON.parse(fs.readFileSync(file, "utf8"));
   const m = meta[article.product_name];
   if (!m) throw new Error(`No meta for product_name: ${article.product_name}`);
-  const descriptor = categoryUrlDescriptor[m.category];
-  if (!descriptor) throw new Error(`No URL descriptor for category: ${m.category}`);
-  const slug = `${m.slug}-${descriptor}`;
   const faqs = extractFaqs(article.html_content);
   products.push({
-    slug,
+    slug: m.slug,
     category: m.category,
     tagline: m.tagline,
     product_name: article.product_name,
@@ -158,14 +153,22 @@ console.log(`Wrote ${products.length} products to ${outFile}`);
 
 // ----- Generate /llms.txt for generative-engine optimization (GEO) -----
 // A concise, link-rich Markdown summary that LLM answer engines can ingest.
+const categoryOrder = [];
+for (const p of products) {
+  if (!categoryOrder.includes(p.category)) categoryOrder.push(p.category);
+}
 const llms =
   `# ${SITE_NAME}\n\n` +
   "> Independent, in-depth reviews of popular US health and wellness " +
   "supplements — ingredients, benefits, pricing, money-back guarantees, side " +
   "effects, and where to buy. Written for readers across all 50 US states.\n\n" +
   `Homepage / review hub: ${SITE_URL}/\n\n` +
-  `This site contains affiliate links. All ${products.length} reviews are listed below.\n\n` +
-  "## Supplement Reviews\n\n" +
+  `This site contains affiliate links. All ${products.length} reviews are grouped into ${categoryOrder.length} categories.\n\n` +
+  "## Categories\n\n" +
+  categoryOrder
+    .map((c) => `- [${c}](${SITE_URL}/category/${slugify(c)})`)
+    .join("\n") +
+  "\n\n## Supplement Reviews\n\n" +
   products
     .map(
       (p) =>

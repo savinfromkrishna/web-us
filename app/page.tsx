@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { products } from "./lib/products";
+import { categories } from "./lib/categories";
 import JsonLd from "./components/json-ld";
-import { reviewsCollectionGraph } from "./lib/schema";
+import CategoryIcon from "./components/category-icon";
+import { categoriesCollectionGraph } from "./lib/schema";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
 export default function Home() {
+  // Count products per category so each card can show how many reviews it holds.
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    counts.set(product.category, (counts.get(product.category) ?? 0) + 1);
+  }
+
   return (
     <>
-      <JsonLd data={reviewsCollectionGraph(products)} />
+      <JsonLd data={categoriesCollectionGraph(categories)} />
       <section className="home-hero">
         <h1>Honest Reviews of Today&apos;s Most Popular Supplements</h1>
         <p>
@@ -23,26 +31,29 @@ export default function Home() {
       </section>
 
       <h2 className="section-title" id="reviews">
-        All Reviews
+        Browse by Category
       </h2>
+      <p className="section-subtitle">
+        {categories.length} health categories · {products.length} independent
+        reviews
+      </p>
 
-      <div className="review-grid">
-        {products.map((product) => (
+      <div className="category-grid">
+        {categories.map((category) => (
           <Link
-            key={product.slug}
-            href={`/${product.slug}`}
-            className="review-card"
+            key={category.slug}
+            href={`/category/${category.slug}`}
+            className="category-card"
           >
-            <div className="thumb">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={product.main_image_url} alt={product.image_alt_text} />
-            </div>
-            <div className="body">
-              <span className="cat">{product.category}</span>
-              <h3>{product.product_name} Review</h3>
-              <p>{product.tagline}</p>
-              <span className="read">Read full review &rarr;</span>
-            </div>
+            <span className="icon-circle">
+              <CategoryIcon slug={category.slug} />
+            </span>
+            <h3>{category.name}</h3>
+            <span className="tags">{category.tags}</span>
+            <span className="count">
+              {counts.get(category.name) ?? 0}{" "}
+              {(counts.get(category.name) ?? 0) === 1 ? "review" : "reviews"}
+            </span>
           </Link>
         ))}
       </div>

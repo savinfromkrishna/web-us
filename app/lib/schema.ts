@@ -14,6 +14,8 @@ import {
   US_STATES,
 } from "./site";
 import type { Product } from "./products";
+import type { Category } from "./categories";
+import { getCategoryByName } from "./categories";
 
 const ORG_ID = `${SITE_URL}/#organization`;
 const WEBSITE_ID = `${SITE_URL}/#website`;
@@ -53,9 +55,9 @@ export function siteGraph() {
   };
 }
 
-// Homepage: a CollectionPage that lists every review (helps engines and LLMs
-// understand the site is a hub of N supplement reviews).
-export function reviewsCollectionGraph(products: Product[]) {
+// Homepage: a CollectionPage listing every category (the homepage is now a
+// category hub).
+export function categoriesCollectionGraph(items: Category[]) {
   return {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -67,14 +69,51 @@ export function reviewsCollectionGraph(products: Product[]) {
     about: { "@id": ORG_ID },
     mainEntity: {
       "@type": "ItemList",
-      numberOfItems: products.length,
-      itemListElement: products.map((p, i) => ({
+      numberOfItems: items.length,
+      itemListElement: items.map((c, i) => ({
         "@type": "ListItem",
         position: i + 1,
-        url: `${SITE_URL}/${p.slug}`,
-        name: `${p.product_name} Review`,
+        url: `${SITE_URL}/category/${c.slug}`,
+        name: c.name,
       })),
     },
+  };
+}
+
+// Category page: BreadcrumbList + CollectionPage listing the category's products.
+export function categoryPageGraph(category: Category, items: Product[]) {
+  const url = `${SITE_URL}/category/${category.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: category.name, item: url },
+        ],
+      },
+      {
+        "@type": "CollectionPage",
+        "@id": `${url}/#webpage`,
+        url,
+        name: category.metaTitle,
+        description: category.metaDescription,
+        inLanguage: LOCALE_BCP47,
+        isPartOf: { "@id": WEBSITE_ID },
+        about: { "@id": ORG_ID },
+        mainEntity: {
+          "@type": "ItemList",
+          numberOfItems: items.length,
+          itemListElement: items.map((p, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            url: `${SITE_URL}/${p.slug}`,
+            name: `${p.product_name} Review`,
+          })),
+        },
+      },
+    ],
   };
 }
 
@@ -82,25 +121,27 @@ export function reviewsCollectionGraph(products: Product[]) {
 export function productReviewGraph(product: Product) {
   const url = `${SITE_URL}/${product.slug}`;
   const productId = `${url}/#product`;
+  const category = getCategoryByName(product.category);
 
-  const breadcrumb = {
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Reviews",
-        item: `${SITE_URL}/#reviews`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: `${product.product_name} Review`,
-        item: url,
-      },
-    ],
-  };
+  const crumbs: object[] = [
+    { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+  ];
+  if (category) {
+    crumbs.push({
+      "@type": "ListItem",
+      position: 2,
+      name: category.name,
+      item: `${SITE_URL}/category/${category.slug}`,
+    });
+  }
+  crumbs.push({
+    "@type": "ListItem",
+    position: crumbs.length + 1,
+    name: `${product.product_name} Review`,
+    item: url,
+  });
+
+  const breadcrumb = { "@type": "BreadcrumbList", itemListElement: crumbs };
 
   const productNode = {
     "@type": "Product",

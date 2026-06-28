@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAllSlugs, getProductBySlug } from "../lib/products";
+import { getCategoryByName } from "../lib/categories";
 import JsonLd from "../components/json-ld";
 import { productReviewGraph } from "../lib/schema";
 import { SITE_NAME, LOCALE } from "../lib/site";
@@ -62,12 +63,20 @@ export default async function ReviewPage({
     notFound();
   }
 
+  const category = getCategoryByName(product.category);
+
   return (
     <article className="article-wrap">
       <JsonLd data={productReviewGraph(product)} />
       <nav className="breadcrumb">
         <Link href="/">Home</Link> &rsaquo;{" "}
-        <Link href="/#reviews">Reviews</Link> &rsaquo; {product.product_name}
+        {category ? (
+          <>
+            <Link href={`/category/${category.slug}`}>{category.name}</Link>{" "}
+            &rsaquo;{" "}
+          </>
+        ) : null}
+        {product.product_name}
       </nav>
 
       <div className="article-hero-img">
