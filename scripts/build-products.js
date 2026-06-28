@@ -5,6 +5,54 @@ const path = require("path");
 
 const rawDir = path.join(__dirname, "..", "app", "lib", "raw");
 const outFile = path.join(__dirname, "..", "app", "lib", "products.ts");
+const publicDir = path.join(__dirname, "..", "public");
+const llmsFile = path.join(publicDir, "llms.txt");
+
+// Domain for absolute URLs in llms.txt. Keep in sync with app/lib/site.ts.
+const SITE_URL = "https://healthsupplements.best";
+const SITE_NAME = "WellnessPicks";
+
+// Strip HTML tags + collapse whitespace + decode the few entities present.
+function stripTags(html) {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&rsquo;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Pull the "Frequently Asked Questions" Q&A pairs out of an article's HTML so
+// they can power FAQPage structured data. Articles use <h2>FAQ...</h2> followed
+// by <h3>question</h3><p>answer</p> pairs (tag case varies between articles).
+function extractFaqs(html) {
+  const heading = /<h2[^>]*>\s*Frequently Asked Questions[\s\S]*?<\/h2>/i.exec(
+    html
+  );
+  if (!heading) return [];
+  const after = html.slice(heading.index + heading[0].length);
+  const nextH2 = after.search(/<h2[^>]*>/i);
+  let section = nextH2 === -1 ? after : after.slice(0, nextH2);
+  // Defensive: if the FAQ block were ever the final section, drop any affiliate
+  // buy-button anchors and the trailing disclaimer so they can't bleed into the
+  // last answer (and into FAQPage structured data).
+  section = section.replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, " ");
+  const disclaimerIdx = section.search(/<p>\s*<em>\s*Disclaimer/i);
+  if (disclaimerIdx !== -1) section = section.slice(0, disclaimerIdx);
+
+  const faqs = [];
+  const pairRe = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3[^>]*>|$)/gi;
+  let match;
+  while ((match = pairRe.exec(section)) !== null) {
+    const question = stripTags(match[1]);
+    const answer = stripTags(match[2]);
+    if (question && answer) faqs.push({ question, answer });
+  }
+  return faqs;
+}
 
 // Metadata keyed by product_name (must match the article JSON exactly).
 const meta = {
@@ -24,6 +72,21 @@ const meta = {
   GlucoBerry: { slug: "glucoberry", category: "Blood Sugar", tagline: "Maqui berry support for a healthy kidney 'Blood Sugar Drain' and glucose balance." },
 };
 
+// SEO URL descriptor appended to each product slug, derived from its category.
+// e.g. Mitolyn (Weight & Energy) -> /mitolyn-weight-loss-supplement
+const categoryUrlDescriptor = {
+  "Weight & Energy": "weight-loss-supplement",
+  "Oral Health": "oral-health-supplement",
+  "Sleep & Weight": "sleep-weight-loss-supplement",
+  "Gut Health": "gut-health-supplement",
+  Wellness: "wellness-supplement",
+  "Men's Health": "prostate-supplement",
+  "Joint Health": "joint-health-supplement",
+  "Blood Sugar": "blood-sugar-supplement",
+  "Hearing Health": "hearing-health-supplement",
+  "Weight Loss": "weight-loss-supplement",
+};
+
 const order = [
   "01-mitolyn", "02-prodentim", "03-sleeplean", "04-belly-flush", "05-provadent",
   "06-dentolyn", "07-dentalprime", "08-pineal-xt", "09-prostavive", "10-joint-genesis",
@@ -40,8 +103,12 @@ for (const name of order) {
   const article = JSON.parse(fs.readFileSync(file, "utf8"));
   const m = meta[article.product_name];
   if (!m) throw new Error(`No meta for product_name: ${article.product_name}`);
+  const descriptor = categoryUrlDescriptor[m.category];
+  if (!descriptor) throw new Error(`No URL descriptor for category: ${m.category}`);
+  const slug = `${m.slug}-${descriptor}`;
+  const faqs = extractFaqs(article.html_content);
   products.push({
-    slug: m.slug,
+    slug,
     category: m.category,
     tagline: m.tagline,
     product_name: article.product_name,
@@ -52,6 +119,7 @@ for (const name of order) {
     keywords: article.keywords,
     image_alt_text: article.image_alt_text,
     html_content: article.html_content,
+    faqs,
   });
 }
 
@@ -71,6 +139,7 @@ const typeDef =
   "  keywords: string[];\n" +
   "  image_alt_text: string;\n" +
   "  html_content: string;\n" +
+  "  faqs: { question: string; answer: string }[];\n" +
   "};\n\n";
 const body =
   "export const products: Product[] = " +
@@ -86,3 +155,25 @@ const helpers =
 
 fs.writeFileSync(outFile, banner + typeDef + body + helpers);
 console.log(`Wrote ${products.length} products to ${outFile}`);
+
+// ----- Generate /llms.txt for generative-engine optimization (GEO) -----
+// A concise, link-rich Markdown summary that LLM answer engines can ingest.
+const llms =
+  `# ${SITE_NAME}\n\n` +
+  "> Independent, in-depth reviews of popular US health and wellness " +
+  "supplements — ingredients, benefits, pricing, money-back guarantees, side " +
+  "effects, and where to buy. Written for readers across all 50 US states.\n\n" +
+  `Homepage / review hub: ${SITE_URL}/\n\n` +
+  `This site contains affiliate links. All ${products.length} reviews are listed below.\n\n` +
+  "## Supplement Reviews\n\n" +
+  products
+    .map(
+      (p) =>
+        `- [${p.product_name} Review](${SITE_URL}/${p.slug}) — ${p.category}. ${p.tagline}`
+    )
+    .join("\n") +
+  "\n";
+
+fs.mkdirSync(publicDir, { recursive: true });
+fs.writeFileSync(llmsFile, llms);
+console.log(`Wrote llms.txt with ${products.length} entries to ${llmsFile}`);

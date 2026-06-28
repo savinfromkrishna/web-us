@@ -1,15 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { products } from "./lib/products";
+import JsonLd from "./components/json-ld";
+import { reviewsCollectionGraph } from "./lib/schema";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function Home() {
   return (
     <>
+      <JsonLd data={reviewsCollectionGraph(products)} />
       <section className="home-hero">
         <h1>Honest Reviews of Today&apos;s Most Popular Supplements</h1>
         <p>
           We dig into the ingredients, pricing, guarantees, and real-world
           results so you can decide what&apos;s actually worth your money — before
-          you buy.
+          you buy. Every supplement we review can be ordered online across all 50
+          US states.
         </p>
       </section>
 
@@ -21,7 +30,7 @@ export default function Home() {
         {products.map((product) => (
           <Link
             key={product.slug}
-            href={`/reviews/${product.slug}`}
+            href={`/${product.slug}`}
             className="review-card"
           >
             <div className="thumb">

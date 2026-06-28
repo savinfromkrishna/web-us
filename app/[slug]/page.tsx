@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllSlugs, getProductBySlug } from "../../lib/products";
+import { getAllSlugs, getProductBySlug } from "../lib/products";
+import JsonLd from "../components/json-ld";
+import { productReviewGraph } from "../lib/schema";
+import { SITE_NAME, LOCALE } from "../lib/site";
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -21,16 +24,28 @@ export async function generateMetadata({
     return { title: "Review Not Found" };
   }
 
+  const canonical = `/${product.slug}`;
+  const images = [{ url: product.main_image_url, alt: product.image_alt_text }];
+
   return {
     title: product.seo_title,
     description: product.meta_description,
     keywords: product.keywords,
-    alternates: { canonical: `/reviews/${product.slug}` },
+    alternates: { canonical },
     openGraph: {
+      type: "article",
+      siteName: SITE_NAME,
+      locale: LOCALE,
+      url: canonical,
       title: product.seo_title,
       description: product.meta_description,
-      images: [{ url: product.main_image_url, alt: product.image_alt_text }],
-      type: "article",
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.seo_title,
+      description: product.meta_description,
+      images: [product.main_image_url],
     },
   };
 }
@@ -49,6 +64,7 @@ export default async function ReviewPage({
 
   return (
     <article className="article-wrap">
+      <JsonLd data={productReviewGraph(product)} />
       <nav className="breadcrumb">
         <Link href="/">Home</Link> &rsaquo;{" "}
         <Link href="/#reviews">Reviews</Link> &rsaquo; {product.product_name}
